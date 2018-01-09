@@ -186,13 +186,16 @@ function TFSArchive.Size: Integer;
 var
   FileHandle: file of Byte;
 begin
-  Result := - 1;
-  AssignFile(FileHandle, Path);
   try
-    Reset(FileHandle);
-    Result := FileSize(FileHandle);
-  finally
-    CloseFile(FileHandle);
+    AssignFile(FileHandle, Path);
+    try
+      Reset(FileHandle);
+      Result := FileSize(FileHandle);
+    finally
+      CloseFile(FileHandle);
+    end;
+  except
+    Result := - 1;
   end;
 end;
 
