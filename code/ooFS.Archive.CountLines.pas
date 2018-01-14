@@ -26,7 +26,7 @@ type
   Calculate the amount of lines in file
 }
 {$ENDREGION}
-  IFSArchiveCountLines = interface(IFSCommand<Integer>)
+  IFSArchiveCountLines = interface(IFSCommand<Cardinal>)
     ['{B416BE24-9862-418C-9D55-464FF781D74C}']
   end;
 {$REGION 'documentation'}
@@ -34,7 +34,7 @@ type
   @abstract(Implementation of @link(IFSArchiveCountLines))
   @member(
     Execute Run the count lines command
-    @return(Integer with the counted lines)
+    @return(Number with the counted lines)
   )
   @member(
     Create Object constructor
@@ -51,14 +51,14 @@ type
   strict private
     _Archive: IFSArchive;
   public
-    function Execute: Integer;
+    function Execute: Cardinal;
     constructor Create(const Archive: IFSArchive);
     class function New(const Archive: IFSArchive): IFSArchiveCountLines;
   end;
 
 implementation
 
-function TFSArchiveCountLines.Execute: Integer;
+function TFSArchiveCountLines.Execute: Cardinal;
 const
   MAX_BUFFER = 1024 * 1024;
   LF = #10;
@@ -66,8 +66,8 @@ const
 var
   FileStream: TFileStream;
   BufferString: AnsiString;
-  BufferSize: Integer;
-  SeekPos: Integer;
+  BufferSize: Cardinal;
+  SeekPos: Cardinal;
   NeedCarry: Boolean;
 begin
   Result := 0;
