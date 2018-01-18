@@ -39,24 +39,19 @@ type
     @return(@true if success, @false if fail)
   )
   @member(
-    BuildDestinationFileName Create the destination file name
-    @param(FileName Source file name)
-    @param(Destination Destination file name)
-  )
-  @member(
     Execute Run rename command
     @return(@true if success, @false if fail)
   )
   @member(
     Create Object constructor
     @param(Archive @link(IFSArchive Source archive))
-    @param(Destination Destinarion file name)
+    @param(Name New file name)
     @param(MaxTries Max tries for renam fail)
   )
   @member(
     New Create a new @classname as interface
     @param(Archive @link(IFSArchive Source archive))
-    @param(Destination Destinarion file name)
+    @param(Name New file name)
     @param(MaxTries Max tries for rename fail)
   )
 }
@@ -68,23 +63,21 @@ type
     DELAY_IN_TRY = 200;
   strict private
     _Archive: IFSArchive;
-    _DestinationFileName: String;
+    _NewName: String;
     _MaxTries: Byte;
   private
     function TryRename(const Tries: Byte): Boolean;
-    function BuildDestinationFileName(const FileName, Destination: String): String;
   public
     function Execute: Boolean;
-    constructor Create(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte = 10);
-    class function New(const Archive: IFSArchive; const Destination: String;
-      const MaxTries: Byte = 10): IFSArchiveRename;
+    constructor Create(const Archive: IFSArchive; const Name: String; const MaxTries: Byte = 10);
+    class function New(const Archive: IFSArchive; const Name: String; const MaxTries: Byte = 10): IFSArchiveRename;
   end;
 
 implementation
 
 function TFSArchiveRename.TryRename(const Tries: Byte): Boolean;
 begin
-  Result := RenameFile(PChar(_Archive.Path), PChar(_DestinationFileName));
+  Result := RenameFile(PChar(_Archive.Path), PChar(_NewName));
   if not Result and (Tries < _MaxTries) then
   begin
     TFSCommandDelay.New(DELAY_IN_TRY).Execute;
@@ -97,25 +90,17 @@ begin
   Result := TryRename(0);
 end;
 
-function TFSArchiveRename.BuildDestinationFileName(const FileName, Destination: String): String;
-begin
-  if Length(ExtractFileName(Destination)) < 1 then
-    Result := IncludeTrailingPathDelimiter(Destination) + _Archive.Name
-  else
-    Result := Destination;
-end;
-
-constructor TFSArchiveRename.Create(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte);
+constructor TFSArchiveRename.Create(const Archive: IFSArchive; const Name: String; const MaxTries: Byte);
 begin
   _Archive := Archive;
   _MaxTries := MaxTries;
-  _DestinationFileName := BuildDestinationFileName(_Archive.Path, Destination);
+  _NewName := Archive.Parent.Path + Name;
 end;
 
-class function TFSArchiveRename.New(const Archive: IFSArchive; const Destination: String;
+class function TFSArchiveRename.New(const Archive: IFSArchive; const Name: String;
   const MaxTries: Byte): IFSArchiveRename;
 begin
-  Result := TFSArchiveRename.Create(Archive, Destination, MaxTries);
+  Result := TFSArchiveRename.Create(Archive, Name, MaxTries);
 end;
 
 end.

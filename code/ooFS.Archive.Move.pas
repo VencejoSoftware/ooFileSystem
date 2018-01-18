@@ -18,6 +18,7 @@ uses
   Windows, SysUtils,
   ooFS.Command.Delay,
   ooFS.Archive,
+  ooFS.Directory,
   ooFS.Command.Intf;
 
 type
@@ -37,11 +38,6 @@ type
     TryMove Try to move file until success or max tries are reached
     @param(Tries Actual try number to increment if not success)
     @return(@true if success, @false if fail)
-  )
-  @member(
-    BuildDestinationFileName Create the destination file name
-    @param(FileName Source file name)
-    @param(Destination Destination file name)
   )
   @member(
     Execute Run move command
@@ -68,22 +64,22 @@ type
     DELAY_IN_TRY = 200;
   strict private
     _Archive: IFSArchive;
-    _DestinationFileName: String;
+    _TargetArchive: IFSArchive;
     _MaxTries: Byte;
   private
     function TryMove(const Tries: Byte): Boolean;
-    function BuildDestinationFileName(const FileName, Destination: String): String;
   public
     function Execute: Boolean;
-    constructor Create(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte = 10);
-    class function New(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte = 10): IFSArchiveMove;
+    constructor Create(const Archive: IFSArchive; const Target: IFSDirectory; const MaxTries: Byte = 10);
+    class function New(const Archive: IFSArchive; const Target: IFSDirectory;
+      const MaxTries: Byte = 10): IFSArchiveMove;
   end;
 
 implementation
 
 function TFSArchiveMove.TryMove(const Tries: Byte): Boolean;
 begin
-  Result := MoveFile(PChar(_Archive.Path), PChar(_DestinationFileName));
+  Result := MoveFile(PChar(_Archive.Path), PChar(_TargetArchive.Path));
   if not Result and (Tries < _MaxTries) then
   begin
     TFSCommandDelay.New(DELAY_IN_TRY).Execute;
@@ -96,25 +92,18 @@ begin
   Result := TryMove(0);
 end;
 
-function TFSArchiveMove.BuildDestinationFileName(const FileName, Destination: String): String;
-begin
-  if Length(ExtractFileName(Destination)) < 1 then
-    Result := IncludeTrailingPathDelimiter(Destination) + _Archive.Name
-  else
-    Result := Destination;
-end;
-
-constructor TFSArchiveMove.Create(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte);
+constructor TFSArchiveMove.Create(const Archive: IFSArchive; const Target: IFSDirectory; const MaxTries: Byte);
 begin
   _Archive := Archive;
   _MaxTries := MaxTries;
-  _DestinationFileName := BuildDestinationFileName(_Archive.Path, Destination);
+  _TargetArchive := TFSArchive.New(Target, Archive.Name);
 end;
 
-class function TFSArchiveMove.New(const Archive: IFSArchive; const Destination: String;
+class function TFSArchiveMove.New(const Archive: IFSArchive; const Target: IFSDirectory;
   const MaxTries: Byte): IFSArchiveMove;
 begin
-  Result := TFSArchiveMove.Create(Archive, Destination, MaxTries);
+  Result := TFSArchiveMove.Create(Archive, Target, MaxTries);
 end;
 
 end.
+

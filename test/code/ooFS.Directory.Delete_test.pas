@@ -18,7 +18,7 @@ uses
 {$ENDIF};
 
 type
-  TFSDirectoryDeleteTest = class(TTestCase)
+  TFSDirectoryDeleteTest = class sealed(TTestCase)
   published
     procedure DeleteNotExists;
     procedure DeleteExists;

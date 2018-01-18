@@ -17,7 +17,7 @@ uses
 {$ENDIF};
 
 type
-  TFSDrivesScanTest = class(TTestCase)
+  TFSDrivesScanTest = class sealed(TTestCase)
   private
     _Drives: TFSDrives;
   protected

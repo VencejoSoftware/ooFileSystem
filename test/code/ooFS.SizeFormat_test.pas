@@ -17,7 +17,7 @@ uses
 {$ENDIF};
 
 type
-  TFSSizeFormatTest = class(TTestCase)
+  TFSSizeFormatTest = class sealed(TTestCase)
   published
     procedure Stilized1024Bytes;
     procedure Stilized1kb;

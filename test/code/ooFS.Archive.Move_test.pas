@@ -10,6 +10,7 @@ interface
 uses
   SysUtils,
   ooFS.Archive, ooFS.Archive.Move,
+  ooFS.Directory,
   ooFSUtils,
 {$IFDEF FPC}
   fpcunit, testregistry
@@ -18,10 +19,14 @@ uses
 {$ENDIF};
 
 type
-  TFSArchiveMoveTest = class(TTestCase)
+  TFSArchiveMoveTest = class sealed(TTestCase)
+  strict private
+    _Path: IFSDirectory;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure MoveTempFileToPath;
-    procedure MoveTempFileToFileName;
     procedure MoveNonExistsFile;
   end;
 
@@ -29,40 +34,37 @@ implementation
 
 procedure TFSArchiveMoveTest.MoveNonExistsFile;
 var
-  TempFile, Destination: String;
+  Archive: IFSArchive;
+  Target: IFSDirectory;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Move_non_exists.txt';
-  Destination := TempFile + '.copied';
-  CheckFalse(TFSArchiveMove.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-end;
-
-procedure TFSArchiveMoveTest.MoveTempFileToFileName;
-var
-  TempFile, Destination: String;
-begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Move.txt';
-  CreateTempArchive(TempFile);
-  Destination := TempFile + '.copied';
-  CheckTrue(TFSArchiveMove.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-  CheckTrue(FileExists(Destination));
-  DeleteArchive(Destination);
+  Archive := TFSArchive.New(TFSDirectory.New('Temp'), 'temp_file_to_Move_non_exists.txt');
+  Target := TFSDirectory.NewWithParent(_Path, 'target');
+  CheckFalse(TFSArchiveMove.New(Archive, Target).Execute);
 end;
 
 procedure TFSArchiveMoveTest.MoveTempFileToPath;
 var
-  TempFile, Destination: String;
+  Archive: IFSArchive;
+  Target: IFSDirectory;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Move.txt';
-  CreateTempArchive(TempFile);
-  Destination := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'to_Move\';
-  CreatePath(Destination);
-  try
-    CheckTrue(TFSArchiveMove.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-    CheckTrue(FileExists(Destination + ExtractFileName(TempFile)));
-  finally
-    DeleteArchive(Destination + ExtractFileName(TempFile));
-    DeletePath(Destination);
-  end;
+  Archive := TFSArchive.New(_Path, 'temp_file_to_Move.txt');
+  CreateTempArchive(Archive.Path);
+  Target := TFSDirectory.NewWithParent(_Path, 'target');
+  CreatePath(Target.Path);
+  CheckTrue(TFSArchiveMove.New(Archive, Target).Execute);
+  CheckTrue(FileExists(Target.Path + ExtractFileName(Archive.Name)));
+end;
+
+procedure TFSArchiveMoveTest.SetUp;
+begin
+  inherited;
+  _Path := TFSDirectory.New(TempFolder);
+end;
+
+procedure TFSArchiveMoveTest.TearDown;
+begin
+  inherited;
+  RemoveTempFolder;
 end;
 
 initialization

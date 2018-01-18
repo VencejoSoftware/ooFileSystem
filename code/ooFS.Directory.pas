@@ -160,6 +160,8 @@ end;
 
 class function TFSDirectory.New(const Path: String): IFSDirectory;
 begin
+  if Length(Trim(Path)) < 1 then
+    raise Exception.Create('Path can not be empty');
   Result := TFSDirectory.Create(nil, Path);
 end;
 

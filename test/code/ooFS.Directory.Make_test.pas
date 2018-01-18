@@ -18,7 +18,7 @@ uses
 {$ENDIF};
 
 type
-  TFSDirectoryMakeTest = class(TTestCase)
+  TFSDirectoryMakeTest = class sealed(TTestCase)
   published
     procedure MakeNotExists;
     procedure MakeExists;

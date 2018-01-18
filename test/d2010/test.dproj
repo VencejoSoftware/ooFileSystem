@@ -63,11 +63,12 @@
 			<DCCReference Include="..\code\ooFS.SizeFormat_test.pas"/>
 			<DCCReference Include="..\code\ooFS.Entry.Scan_test.pas"/>
 			<DCCReference Include="..\code\ooFS.Archive.InUse_test.pas"/>
-			<DCCReference Include="..\code\ooFSUtils.pas"/>
 			<DCCReference Include="..\code\ooFS.Directory.IsEmpty_test.pas"/>
 			<DCCReference Include="..\code\ooFS.Directory.Make_test.pas"/>
 			<DCCReference Include="..\code\ooFS.Directory.Delete_test.pas"/>
 			<DCCReference Include="..\code\ooFS.Directory.Absolute_test.pas"/>
+			<DCCReference Include="..\code\ooFSUtils.pas"/>
+			<DCCReference Include="..\code\ooFS.Directory.Size_test.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

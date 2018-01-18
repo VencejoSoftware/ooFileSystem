@@ -18,7 +18,7 @@ uses
 {$ENDIF};
 
 type
-  TFSArchiveInUseTest = class(TTestCase)
+  TFSArchiveInUseTest = class sealed(TTestCase)
   private
     _Archive: IFSArchive;
   protected

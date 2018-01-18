@@ -10,6 +10,7 @@ interface
 uses
   SysUtils,
   ooFS.Archive, ooFS.Archive.Copy,
+  ooFS.Directory,
   ooFSUtils,
 {$IFDEF FPC}
   fpcunit, testregistry
@@ -18,10 +19,14 @@ uses
 {$ENDIF};
 
 type
-  TFSArchiveCopyTest = class(TTestCase)
+  TFSArchiveCopyTest = class sealed(TTestCase)
+  strict private
+    _Path: IFSDirectory;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
     procedure CopyTempFileToPath;
-    procedure CopyTempFileToFileName;
     procedure CopyNonExistsFile;
   end;
 
@@ -29,48 +34,38 @@ implementation
 
 procedure TFSArchiveCopyTest.CopyNonExistsFile;
 var
-  TempFile, Destination: String;
+  Archive: IFSArchive;
+  Target: IFSDirectory;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Copy_non_exists.txt';
-  Destination := TempFile + '.copied';
-  CheckFalse(TFSArchiveCopy.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-end;
-
-procedure TFSArchiveCopyTest.CopyTempFileToFileName;
-var
-  TempFile, Destination: String;
-begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Copy.txt';
-  CreateTempArchive(TempFile);
-  try
-    Destination := TempFile + '.copied';
-    CheckTrue(TFSArchiveCopy.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-    CheckTrue(FileExists(Destination));
-    DeleteArchive(Destination);
-  finally
-    DeleteArchive(TempFile);
-  end;
+  Archive := TFSArchive.New(TFSDirectory.New('Temp'), 'temp_file_to_Copy_non_exists.txt');
+  Target := TFSDirectory.NewWithParent(_Path, 'target');
+  CheckFalse(TFSArchiveCopy.New(Archive, Target).Execute);
 end;
 
 procedure TFSArchiveCopyTest.CopyTempFileToPath;
 var
-  TempFile, Destination: String;
+  Archive: IFSArchive;
+  Target: IFSDirectory;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Copy.txt';
-  CreateTempArchive(TempFile);
-  try
-    Destination := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'to_copy\';
-    CreatePath(Destination);
-    try
-      CheckTrue(TFSArchiveCopy.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-      CheckTrue(FileExists(Destination + ExtractFileName(TempFile)));
-    finally
-      DeleteArchive(Destination + ExtractFileName(TempFile));
-      DeletePath(Destination);
-    end;
-  finally
-    DeleteArchive(TempFile);
-  end;
+  Archive := TFSArchive.New(_Path, 'temp_file_to_Copy.txt');
+  CreateTempArchive(Archive.Path);
+  Target := TFSDirectory.NewWithParent(_Path, 'target');
+  CreatePath(Target.Path);
+  CheckTrue(TFSArchiveCopy.New(Archive, Target).Execute);
+  CheckTrue(FileExists(Target.Path + Archive.Name));
+  CheckTrue(FileExists(Archive.Path));
+end;
+
+procedure TFSArchiveCopyTest.SetUp;
+begin
+  inherited;
+  _Path := TFSDirectory.New(TempFolder);
+end;
+
+procedure TFSArchiveCopyTest.TearDown;
+begin
+  inherited;
+  RemoveTempFolder;
 end;
 
 initialization

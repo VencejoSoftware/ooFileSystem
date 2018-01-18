@@ -10,6 +10,7 @@ interface
 uses
   SysUtils,
   ooFS.Archive, ooFS.Archive.Rename,
+  ooFS.Directory,
   ooFSUtils,
 {$IFDEF FPC}
   fpcunit, testregistry
@@ -18,9 +19,13 @@ uses
 {$ENDIF};
 
 type
-  TFSArchiveRenameTest = class(TTestCase)
+  TFSArchiveRenameTest = class sealed(TTestCase)
+  strict private
+    _Path: IFSDirectory;
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
   published
-    procedure RenameTempFileToPath;
     procedure RenameTempFileToFileName;
     procedure RenameNonExistsFile;
   end;
@@ -29,40 +34,32 @@ implementation
 
 procedure TFSArchiveRenameTest.RenameNonExistsFile;
 var
-  TempFile, Destination: String;
+  Archive: IFSArchive;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Rename_non_exists.txt';
-  Destination := TempFile + '.copied';
-  CheckFalse(TFSArchiveRename.New(TFSArchive.New(nil, TempFile), Destination).Execute);
+  Archive := TFSArchive.New(TFSDirectory.New('Temp'), 'temp_file_to_Rename_non_exists.txt');
+  CheckFalse(TFSArchiveRename.New(Archive, 'NewName').Execute);
 end;
 
 procedure TFSArchiveRenameTest.RenameTempFileToFileName;
 var
-  TempFile, Destination: String;
+  Archive: IFSArchive;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Rename.txt';
-  CreateTempArchive(TempFile);
-  Destination := TempFile + '.copied';
-  CheckTrue(TFSArchiveRename.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-  CheckTrue(FileExists(Destination));
-  DeleteArchive(Destination);
+  Archive := TFSArchive.New(_Path, 'temp_file_to_Rename_non_exists.txt');
+  CreateTempArchive(Archive.Path);
+  CheckTrue(TFSArchiveRename.New(Archive, 'newname.txt').Execute);
+  CheckTrue(FileExists(Archive.Parent.Path + 'newname.txt'));
 end;
 
-procedure TFSArchiveRenameTest.RenameTempFileToPath;
-var
-  TempFile, Destination: String;
+procedure TFSArchiveRenameTest.SetUp;
 begin
-  TempFile := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'temp_file_to_Rename.txt';
-  CreateTempArchive(TempFile);
-  Destination := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'to_Rename\';
-  CreatePath(Destination);
-  try
-    CheckTrue(TFSArchiveRename.New(TFSArchive.New(nil, TempFile), Destination).Execute);
-    CheckTrue(FileExists(Destination + ExtractFileName(TempFile)));
-  finally
-    DeleteArchive(Destination + ExtractFileName(TempFile));
-    DeletePath(Destination);
-  end;
+  inherited;
+  _Path := TFSDirectory.New(TempFolder);
+end;
+
+procedure TFSArchiveRenameTest.TearDown;
+begin
+  inherited;
+  RemoveTempFolder;
 end;
 
 initialization

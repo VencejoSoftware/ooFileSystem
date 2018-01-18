@@ -18,7 +18,7 @@ uses
 {$ENDIF};
 
 type
-  TFSArchiveTest = class(TTestCase)
+  TFSArchiveTest = class sealed(TTestCase)
   protected
     procedure SetUp; override;
     procedure TearDown; override;

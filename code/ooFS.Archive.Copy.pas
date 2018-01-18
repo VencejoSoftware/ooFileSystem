@@ -18,6 +18,7 @@ uses
   Windows, SysUtils,
   ooFS.Command.Delay,
   ooFS.Archive,
+  ooFS.Directory,
   ooFS.Command.Intf;
 
 type
@@ -39,24 +40,19 @@ type
     @return(@true if success, @false if fail)
   )
   @member(
-    BuildDestinationFileName Create the destination file name
-    @param(FileName Source file name)
-    @param(Destination Destination file name)
-  )
-  @member(
     Execute Run copy command
     @return(@true if success, @false if fail)
   )
   @member(
     Create Object constructor
     @param(Archive @link(IFSArchive Source archive))
-    @param(Destination Destinarion file name)
+    @param(Target Destinarion file name)
     @param(MaxTries Max tries for copy fail)
   )
   @member(
     New Create a new @classname as interface
     @param(Archive @link(IFSArchive Source archive))
-    @param(Destination Destinarion file name)
+    @param(Target Destinarion file name)
     @param(MaxTries Max tries for copy fail)
   )
 }
@@ -67,23 +63,22 @@ type
   const
     DELAY_IN_TRY = 200;
   strict private
-    _Archive: IFSArchive;
-    _DestinationFileName: String;
+    _Archive, _TargetArchive: IFSArchive;
     _MaxTries: Byte;
   private
     function TryCopy(const Tries: Byte): Boolean;
-    function BuildDestinationFileName(const FileName, Destination: String): String;
   public
     function Execute: Boolean;
-    constructor Create(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte = 10);
-    class function New(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte = 10): IFSArchiveCopy;
+    constructor Create(const Archive: IFSArchive; const Target: IFSDirectory; const MaxTries: Byte = 10);
+    class function New(const Archive: IFSArchive; const Target: IFSDirectory;
+      const MaxTries: Byte = 10): IFSArchiveCopy;
   end;
 
 implementation
 
 function TFSArchiveCopy.TryCopy(const Tries: Byte): Boolean;
 begin
-  Result := CopyFile(PChar(_Archive.Path), PChar(_DestinationFileName), False);
+  Result := CopyFile(PChar(_Archive.Path), PChar(_TargetArchive.Path), False);
   if not Result and (Tries < _MaxTries) then
   begin
     TFSCommandDelay.New(DELAY_IN_TRY).Execute;
@@ -96,25 +91,17 @@ begin
   Result := TryCopy(0);
 end;
 
-function TFSArchiveCopy.BuildDestinationFileName(const FileName, Destination: String): String;
-begin
-  if Length(ExtractFileName(Destination)) < 1 then
-    Result := IncludeTrailingPathDelimiter(Destination) + _Archive.Name
-  else
-    Result := Destination;
-end;
-
-constructor TFSArchiveCopy.Create(const Archive: IFSArchive; const Destination: String; const MaxTries: Byte);
+constructor TFSArchiveCopy.Create(const Archive: IFSArchive; const Target: IFSDirectory; const MaxTries: Byte);
 begin
   _Archive := Archive;
   _MaxTries := MaxTries;
-  _DestinationFileName := BuildDestinationFileName(_Archive.Path, Destination);
+  _TargetArchive := TFSArchive.New(Target, _Archive.Name);
 end;
 
-class function TFSArchiveCopy.New(const Archive: IFSArchive; const Destination: String;
+class function TFSArchiveCopy.New(const Archive: IFSArchive; const Target: IFSDirectory;
   const MaxTries: Byte): IFSArchiveCopy;
 begin
-  Result := TFSArchiveCopy.Create(Archive, Destination, MaxTries);
+  Result := TFSArchiveCopy.Create(Archive, Target, MaxTries);
 end;
 
 end.

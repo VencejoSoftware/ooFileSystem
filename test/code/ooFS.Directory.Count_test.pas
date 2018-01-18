@@ -18,7 +18,7 @@ uses
 {$ENDIF};
 
 type
-  TFSDirectoryCountTest = class(TTestCase)
+  TFSDirectoryCountTest = class sealed(TTestCase)
   protected
     procedure SetUp; override;
     procedure TearDown; override;

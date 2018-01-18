@@ -17,7 +17,7 @@ uses
 {$ENDIF};
 
 type
-  TFSEntryScanTest = class(TTestCase)
+  TFSEntryScanTest = class sealed(TTestCase)
   protected
     procedure SetUp; override;
     procedure TearDown; override;

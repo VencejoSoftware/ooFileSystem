@@ -18,11 +18,12 @@ uses
 {$ENDIF};
 
 type
-  TFSDirectoryTest = class(TTestCase)
+  TFSDirectoryTest = class sealed(TTestCase)
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure EmptyDirectoryRaiseError;
     procedure DirectoryPathIsDirectoryTest;
     procedure EntryKindIsDirectory;
     procedure ExistsDirectory_test;
@@ -39,6 +40,19 @@ implementation
 procedure TFSDirectoryTest.DirectoryPathIsDirectoryTest;
 begin
   CheckEquals('..\Directory_test\', TFSDirectory.New('..\Directory_test').Path);
+end;
+
+procedure TFSDirectoryTest.EmptyDirectoryRaiseError;
+var
+  ErrorFound: Boolean;
+begin
+  ErrorFound := False;
+  try
+    CheckEquals(EmptyStr, TFSDirectory.New(EmptyStr).Path);
+  except
+    ErrorFound := True;
+  end;
+  CheckTrue(ErrorFound);
 end;
 
 procedure TFSDirectoryTest.EntryKindIsDirectory;

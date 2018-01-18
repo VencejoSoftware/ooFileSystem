@@ -18,7 +18,7 @@ uses
 {$ENDIF};
 
 type
-  TFSArchiveDeleteTest = class(TTestCase)
+  TFSArchiveDeleteTest = class sealed(TTestCase)
   published
     procedure DeleteTempFile;
     procedure DeleteNonExistsFile;
